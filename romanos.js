@@ -3,7 +3,7 @@
 // ===============================
 const express = require('express');
 const app = express();
-const PORT = process.env.PORT || 2111;
+const PORT = process.env.PORT || 3000;
 
 // Middleware para parsear JSON y formularios
 app.use(express.json());
@@ -114,7 +114,7 @@ app.use((err, req, res, next) => {
 // INICIAR SERVIDOR
 // ===============================
 if (require.main === module) {
-  const PORT = process.env.PORT || 2111; // Podés cambiar el número acá
+  const PORT = process.env.PORT || 3000; // Podés cambiar el número acá
   app.listen(PORT, () => {
     console.log(`🚀 Servidor de conversor iniciado en http://localhost:${PORT}`);
   });
