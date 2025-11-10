@@ -1,8 +1,12 @@
 ﻿// ===============================
-// SERVIDOR EXPRESS - CONVERSOR ROMANO ↔ ARÁBIGO
+// SERVIDOR EXPRESS - CONVERSOR ROMANO ↔ ARÁBIGO + ENDPOINT /move
 // ===============================
 const express = require('express');
 const app = express();
+
+// ===============================
+// CONFIGURACIÓN DEL PUERTO
+// ===============================
 const PORT = process.env.PORT || 3000;
 
 // Middleware para parsear JSON y formularios
@@ -17,7 +21,8 @@ app.get('/', (req, res) => {
     message: 'API de conversión de números romanos ↔ arábigos',
     endpoints: {
       "/r2a?roman=XXI": "Convierte número romano a arábigo",
-      "/a2r?arabic=21": "Convierte número arábigo a romano"
+      "/a2r?arabic=21": "Convierte número arábigo a romano",
+      "/move?board=[...]": "Ejemplo de endpoint adicional (prueba de servidor)"
     },
     rango_valido: "1 a 3999"
   });
@@ -58,13 +63,40 @@ app.get('/a2r', (req, res) => {
 });
 
 // ===============================
+// NUEVO ENDPOINT: /move
+// ===============================
+app.get('/move', (req, res) => {
+  const board = req.query.board;
+
+  if (!board) {
+    return res.status(400).json({
+      error: true,
+      message: 'Debe incluir el parámetro "board" en la URL. Ejemplo: /move?board=[1,2,3]'
+    });
+  }
+
+  try {
+    const parsedBoard = JSON.parse(board);
+    res.json({
+      success: true,
+      board: parsedBoard,
+      message: 'Movimiento recibido correctamente ✅'
+    });
+  } catch (err) {
+    res.status(400).json({
+      error: true,
+      message: 'Formato inválido en "board". Debe ser un JSON válido. Ejemplo: /move?board=[1,2,3]'
+    });
+  }
+});
+
+// ===============================
 // FUNCIONES DE CONVERSIÓN
 // ===============================
 function romanToArabic(roman) {
-  const map = { I:1, V:5, X:10, L:50, C:100, D:500, M:1000 };
+  const map = { I: 1, V: 5, X: 10, L: 50, C: 100, D: 500, M: 1000 };
   let value = 0;
   let prev = 0;
-
   roman = roman.toUpperCase();
 
   for (let i = roman.length - 1; i >= 0; i--) {
@@ -75,7 +107,7 @@ function romanToArabic(roman) {
     prev = curr;
   }
 
-  // Verificar coherencia (reconvertir para validar)
+  // Validar coherencia
   const check = arabicToRoman(value);
   if (check !== roman) return null;
 
