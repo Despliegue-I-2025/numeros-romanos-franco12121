@@ -1,146 +1,103 @@
-﻿// ===============================
-// SERVIDOR EXPRESS - CONVERSOR ROMANO ↔ ARÁBIGO + ENDPOINT /move
-// ===============================
-const express = require('express');
+﻿﻿const express = require('express');
 const app = express();
 
-// ===============================
-// CONFIGURACIÓN DEL PUERTO
-// ===============================
-const PORT = process.env.PORT || 3000;
-
-// Middleware para parsear JSON y formularios
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
-// ===============================
-// ENDPOINT DE BIENVENIDA
-// ===============================
-app.get('/', (req, res) => {
-  res.json({
-    message: 'API de conversión de números romanos ↔ arábigos',
-    endpoints: {
-      "/r2a?roman=XXI": "Convierte número romano a arábigo",
-      "/a2r?arabic=21": "Convierte número arábigo a romano",
-      "/move?board=[...]": "Ejemplo de endpoint adicional (prueba de servidor)"
-    },
-    rango_valido: "1 a 3999"
-  });
-});
-
-// ===============================
-// ENDPOINT: Romanos → Arábigos
-// ===============================
-app.get('/r2a', (req, res) => {
-  const romanNumeral = req.query.roman;
-  if (!romanNumeral) {
-    return res.status(400).json({ error: true, message: 'Parámetro "roman" requerido.' });
-  }
-
-  const arabicNumber = romanToArabic(romanNumeral);
-  if (arabicNumber === null) {
-    return res.status(400).json({ error: true, message: 'Número romano inválido. Usa letras I, V, X, L, C, D, M.' });
-  }
-
-  return res.json({ roman: romanNumeral.toUpperCase(), arabic: arabicNumber });
-});
-
-// ===============================
-// ENDPOINT: Arábigos → Romanos
-// ===============================
-app.get('/a2r', (req, res) => {
-  const arabicNumber = parseInt(req.query.arabic, 10);
-  if (isNaN(arabicNumber)) {
-    return res.status(400).json({ error: true, message: 'Parámetro "arabic" requerido y debe ser un número.' });
-  }
-
-  const romanNumeral = arabicToRoman(arabicNumber);
-  if (romanNumeral === null) {
-    return res.status(400).json({ error: true, message: 'Número arábigo inválido. Debe estar entre 1 y 3999.' });
-  }
-
-  return res.json({ arabic: arabicNumber, roman: romanNumeral });
-});
-
-// ===============================
-// NUEVO ENDPOINT: /move
-// ===============================
-app.get('/move', (req, res) => {
-  const board = req.query.board;
-
-  if (!board) {
-    return res.status(400).json({
-      error: true,
-      message: 'Debe incluir el parámetro "board" en la URL. Ejemplo: /move?board=[1,2,3]'
-    });
-  }
-
-  try {
-    const parsedBoard = JSON.parse(board);
-    res.json({
-      success: true,
-      board: parsedBoard,
-      message: 'Movimiento recibido correctamente ✅'
-    });
-  } catch (err) {
-    res.status(400).json({
-      error: true,
-      message: 'Formato inválido en "board". Debe ser un JSON válido. Ejemplo: /move?board=[1,2,3]'
-    });
-  }
-});
-
-// ===============================
-// FUNCIONES DE CONVERSIÓN
-// ===============================
+// =================================================================
+// LÓGICA DE CONVERSIÓN
+// =================================================================
 function romanToArabic(roman) {
+  if (!/^[IVXLCDM]+$/i.test(roman)) return null;
   const map = { I: 1, V: 5, X: 10, L: 50, C: 100, D: 500, M: 1000 };
-  let value = 0;
-  let prev = 0;
-  roman = roman.toUpperCase();
-
-  for (let i = roman.length - 1; i >= 0; i--) {
-    const curr = map[roman[i]];
-    if (!curr) return null; // Letra inválida
-    if (curr < prev) value -= curr;
-    else value += curr;
-    prev = curr;
+  let arabic = 0;
+  for (let i = 0; i < roman.length; i++) {
+    const current = map[roman[i]];
+    const next = map[roman[i + 1]];
+    if (next > current) {
+      arabic += next - current;
+      i++;
+    } else arabic += current;
   }
-
-  // Validar coherencia
-  const check = arabicToRoman(value);
-  if (check !== roman) return null;
-
-  return value;
+  return arabic < 1 || arabic > 3999 ? null : arabic;
 }
 
 function arabicToRoman(arabic) {
-  if (arabic < 1 || arabic > 3999) return null;
-
-  const map = [
-    [1000, 'M'], [900, 'CM'], [500, 'D'], [400, 'CD'],
-    [100, 'C'], [90, 'XC'], [50, 'L'], [40, 'XL'],
-    [10, 'X'], [9, 'IX'], [5, 'V'], [4, 'IV'], [1, 'I']
+  if (arabic < 1 || arabic > 3999 || !Number.isInteger(arabic)) return null;
+  const numerals = [
+    { v: 1000, s: 'M' }, { v: 900, s: 'CM' }, { v: 500, s: 'D' },
+    { v: 400, s: 'CD' }, { v: 100, s: 'C' }, { v: 90, s: 'XC' },
+    { v: 50, s: 'L' }, { v: 40, s: 'XL' }, { v: 10, s: 'X' },
+    { v: 9, s: 'IX' }, { v: 5, s: 'V' }, { v: 4, s: 'IV' }, { v: 1, s: 'I' }
   ];
-
   let roman = '';
-  for (const [value, symbol] of map) {
-    while (arabic >= value) {
-      roman += symbol;
-      arabic -= value;
+  for (const { v, s } of numerals) {
+    while (arabic >= v) {
+      roman += s;
+      arabic -= v;
     }
   }
   return roman;
 }
 
-// ===============================
-// MANEJO DE ERRORES
-// ===============================
-app.use((err, req, res, next) => {
-  console.error('Error interno:', err);
-  res.status(500).json({ error: true, message: 'Error interno del servidor.' });
+// =================================================================
+// html interfaz
+// =================================================================
+app.get('/', (req, res) => {
+  res.send(`
+    <html>
+      <head>
+        <meta charset="utf-8" />
+        <title>Conversor Romano ↔ Arábigo</title>
+      </head>
+      <body style="font-family:sans-serif;text-align:center;padding:40px;">
+        <h2>Conversor Romano ↔ Arábigo</h2>
+
+        <h3>Romano → Arábigo</h3>
+        <form action="/r2a" method="get" style="margin-bottom:20px;">
+          <input type="text" name="roman" placeholder="Ej: XXIV" required />
+          <button type="submit">Convertir</button>
+        </form>
+
+        <h3>Arábigo → Romano</h3>
+        <form action="/a2r" method="get">
+          <input type="number" name="arabic" placeholder="Ej: 2024" required min="1" max="3999" />
+          <button type="submit">Convertir</button>
+        </form>
+
+        <p style="margin-top:30px;">Rango válido: 1 a 3999</p>
+        <p>También puedes usar las rutas manualmente:<br>
+        <code>/r2a?roman=XXIV</code> o <code>/a2r?arabic=2024</code></p>
+      </body>
+    </html>
+  `);
 });
 
+
+app.get('/r2a', (req, res) => {
+  const roman = req.query.roman ? req.query.roman.toUpperCase() : null;
+  if (!roman) {
+    return res.send('Uso: /r2a?roman=XXIV');
+  }
+  const arabic = romanToArabic(roman);
+  if (arabic === null) return res.status(400).json({ error: 'Numero romano invalido.' });
+  res.json({ arabic });
+});
+
+app.get('/a2r', (req, res) => {
+  const arabic = parseInt(req.query.arabic, 10);
+  if (isNaN(arabic)) {
+    return res.send('Uso: /a2r?arabic=10');
+  }
+  const roman = arabicToRoman(arabic);
+  if (roman === null) return res.status(400).json({ error: 'Numero arabico invalido (debe ser entre 1 y 3999).' });
+  res.json({ roman });
+});
+
+app.get('/health', (req, res) => {
+  res.json({ status: 'OK', service: 'Roman Converter API' });
+});
+
+app.use('*', (req, res) => {
+  res.status(404).json({ error: 'Endpoint no encontrado.' });
+});
 
 // =================================================================
 // EXPORTAR PARA VERCEL
@@ -153,15 +110,3 @@ if (!process.env.VERCEL) {
 module.exports.romanToArabic = romanToArabic;
 module.exports.arabicToRoman = arabicToRoman;
 module.exports = (req, res) => app(req, res);
-
-/*/ ===============================
-// INICIAR SERVIDOR
-// ===============================
-if (require.main === module) {
-  app.listen(PORT, () => {
-    console.log(`🚀 Servidor de conversor iniciado en http://localhost:${PORT}`);
-  });
-}
-
-module.exports = { app, romanToArabic, arabicToRoman };
-*\
