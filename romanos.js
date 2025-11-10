@@ -9,6 +9,99 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// =================================================================
+// Nueva interfaz HTML moderna
+// =================================================================
+app.get('/', (req, res) => {
+  res.send(`
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Conversor Romano ↔ Arábigo</title>
+      <style>
+        body {
+          font-family: 'Segoe UI', Tahoma, sans-serif;
+          background: linear-gradient(135deg, #3b82f6, #1e40af);
+          color: #fff;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          height: 100vh;
+          margin: 0;
+        }
+
+        h1 {
+          font-size: 2rem;
+          margin-bottom: 1rem;
+        }
+
+        .card {
+          background: #ffffff22;
+          padding: 2rem;
+          border-radius: 15px;
+          box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+          width: 90%;
+          max-width: 400px;
+          text-align: center;
+        }
+
+        form {
+          display: flex;
+          flex-direction: column;
+          gap: 10px;
+          margin-top: 1rem;
+        }
+
+        input {
+          padding: 10px;
+          border: none;
+          border-radius: 8px;
+          font-size: 1rem;
+          text-align: center;
+        }
+
+        button {
+          background: #2563eb;
+          color: white;
+          border: none;
+          padding: 10px;
+          border-radius: 8px;
+          cursor: pointer;
+          font-weight: bold;
+          transition: 0.3s;
+        }
+
+        button:hover {
+          background: #1d4ed8;
+        }
+
+        small {
+          color: #cbd5e1;
+          margin-top: 10px;
+          display: block;
+        }
+
+        code {
+          background: rgba(255,255,255,0.2);
+          padding: 3px 6px;
+          border-radius: 5px;
+        }
+      </style>
+    </head>
+
+    <body>
+      <div class="card">
+        <h1>Conversor Romano ↔ Arábigo</h1>
+
+        <form action="/r2a" method="get">
+          <label>De Romano a Arábigo:</label>
+          <input type="text" name="roman" placeholder="Ej: XLII" required />
+          <
+
+
 // ===============================
 // ENDPOINT DE BIENVENIDA
 // ===============================
