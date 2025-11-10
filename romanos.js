@@ -1,4 +1,4 @@
-﻿﻿const express = require('express');
+﻿const express = require('express');
 const app = express();
 
 // =================================================================
@@ -38,65 +38,143 @@ function arabicToRoman(arabic) {
 }
 
 // =================================================================
-// html interfaz
+// NUEVA INTERFAZ HTML PERSONALIZADA
 // =================================================================
 app.get('/', (req, res) => {
   res.send(`
-    <html>
+    <!DOCTYPE html>
+    <html lang="es">
       <head>
         <meta charset="utf-8" />
-        <title>Conversor Romano ↔ Arábigo</title>
+        <title>⚜️ Conversor Romano ↔ Arábigo ⚜️</title>
+        <style>
+          body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #2c3e50, #4ca1af);
+            color: #fff;
+            text-align: center;
+            padding: 50px;
+          }
+          h1 {
+            font-size: 2.2em;
+            margin-bottom: 10px;
+          }
+          h3 {
+            margin-top: 40px;
+          }
+          .card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 25px;
+            border-radius: 15px;
+            width: 350px;
+            margin: 20px auto;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+          }
+          input {
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            margin: 10px;
+            text-align: center;
+            width: 70%;
+            font-size: 1em;
+          }
+          button {
+            background: #f1c40f;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+          }
+          button:hover {
+            background: #d4ac0d;
+          }
+          footer {
+            margin-top: 50px;
+            font-size: 0.9em;
+            color: #ddd;
+          }
+          code {
+            background: rgba(255,255,255,0.2);
+            padding: 3px 8px;
+            border-radius: 5px;
+            font-family: monospace;
+          }
+        </style>
       </head>
-      <body style="font-family:sans-serif;text-align:center;padding:40px;">
-        <h2>Conversor Romano ↔ Arábigo</h2>
+      <body>
+        <h1>⚜️ Conversor de Números ⚜️</h1>
+        <p>Convierte entre números romanos y arábigos fácilmente.</p>
 
-        <h3>Romano → Arábigo</h3>
-        <form action="/r2a" method="get" style="margin-bottom:20px;">
-          <input type="text" name="roman" placeholder="Ej: XXIV" required />
-          <button type="submit">Convertir</button>
-        </form>
+        <div class="card">
+          <h3>🔹 Romano → Arábigo</h3>
+          <form action="/r2a" method="get">
+            <input type="text" name="roman" placeholder="Ejemplo: XXIV" required />
+            <button type="submit">Convertir</button>
+          </form>
+        </div>
 
-        <h3>Arábigo → Romano</h3>
-        <form action="/a2r" method="get">
-          <input type="number" name="arabic" placeholder="Ej: 2024" required min="1" max="3999" />
-          <button type="submit">Convertir</button>
-        </form>
+        <div class="card">
+          <h3>🔸 Arábigo → Romano</h3>
+          <form action="/a2r" method="get">
+            <input type="number" name="arabic" placeholder="Ejemplo: 2024" required min="1" max="3999" />
+            <button type="submit">Convertir</button>
+          </form>
+        </div>
 
-        <p style="margin-top:30px;">Rango válido: 1 a 3999</p>
-        <p>También puedes usar las rutas manualmente:<br>
-        <code>/r2a?roman=XXIV</code> o <code>/a2r?arabic=2024</code></p>
+        <footer>
+          <p>Rango válido: 1 a 3999</p>
+          <p>Prueba también desde la URL:<br>
+          <code>/r2a?roman=XXIV</code> | <code>/a2r?arabic=2024</code></p>
+          <p>🛠️ Desarrollado con ❤️ en Express.js</p>
+        </footer>
       </body>
     </html>
   `);
 });
 
-
+// =================================================================
+// ENDPOINTS PERSONALIZADOS
+// =================================================================
 app.get('/r2a', (req, res) => {
   const roman = req.query.roman ? req.query.roman.toUpperCase() : null;
   if (!roman) {
-    return res.send('Uso: /r2a?roman=XXIV');
+    return res.status(400).json({ error: 'Falta el parámetro "roman". Ejemplo: /r2a?roman=XXIV' });
   }
   const arabic = romanToArabic(roman);
-  if (arabic === null) return res.status(400).json({ error: 'Numero romano invalido.' });
-  res.json({ arabic });
+  if (arabic === null) {
+    return res.status(400).json({
+      error: 'Número romano inválido. Solo se permiten letras I, V, X, L, C, D, M dentro del rango 1–3999.'
+    });
+  }
+  res.json({ conversion: `${roman} → ${arabic}`, roman, arabic });
 });
 
 app.get('/a2r', (req, res) => {
   const arabic = parseInt(req.query.arabic, 10);
   if (isNaN(arabic)) {
-    return res.send('Uso: /a2r?arabic=10');
+    return res.status(400).json({ error: 'Debe ingresar un número válido. Ejemplo: /a2r?arabic=15' });
   }
   const roman = arabicToRoman(arabic);
-  if (roman === null) return res.status(400).json({ error: 'Numero arabico invalido (debe ser entre 1 y 3999).' });
-  res.json({ roman });
+  if (roman === null) {
+    return res.status(400).json({
+      error: 'Número fuera de rango. Solo se aceptan valores enteros entre 1 y 3999.'
+    });
+  }
+  res.json({ conversion: `${arabic} → ${roman}`, arabic, roman });
 });
 
 app.get('/health', (req, res) => {
-  res.json({ status: 'OK', service: 'Roman Converter API' });
+  res.json({ estado: '✅ Operativo', servicio: 'Conversor Romano ↔ Arábigo' });
 });
 
 app.use('*', (req, res) => {
-  res.status(404).json({ error: 'Endpoint no encontrado.' });
+  res.status(404).json({
+    error: '❌ Ruta inexistente.',
+    sugerencia: 'Usa /r2a?roman=XXIV o /a2r?arabic=2024 para probar el conversor.'
+  });
 });
 
 // =================================================================
@@ -104,7 +182,7 @@ app.use('*', (req, res) => {
 // =================================================================
 if (!process.env.VERCEL) {
   const PORT = process.env.PORT || 3000;
-  app.listen(PORT, () => console.log(`Servidor local en puerto ${PORT}`));
+  app.listen(PORT, () => console.log(`🚀 Servidor en ejecución → http://localhost:${PORT}`));
 }
 
 module.exports.romanToArabic = romanToArabic;
