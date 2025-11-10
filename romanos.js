@@ -141,7 +141,20 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: true, message: 'Error interno del servidor.' });
 });
 
-// ===============================
+
+// =================================================================
+// EXPORTAR PARA VERCEL
+// =================================================================
+if (!process.env.VERCEL) {
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => console.log(`Servidor local en puerto ${PORT}`));
+}
+
+module.exports.romanToArabic = romanToArabic;
+module.exports.arabicToRoman = arabicToRoman;
+module.exports = (req, res) => app(req, res);
+
+/*/ ===============================
 // INICIAR SERVIDOR
 // ===============================
 if (require.main === module) {
@@ -151,3 +164,4 @@ if (require.main === module) {
 }
 
 module.exports = { app, romanToArabic, arabicToRoman };
+*\
