@@ -155,38 +155,47 @@ app.get('/r2a', (req, res) => {
 
   return res.status(200).json({ arabic });
 });
+// ===============================
+// RUTA: Árabe → Romano
+// ===============================
+app.get('/a2r', (req, res) => {
+  const number = req.query.number;
 
-//arabicos -romanos 
-+app.get('/a2r', (req, res) => {
-  const raw = req.query.arabic;
-
-  // 1. Debe existir
-  if (!raw) {
+  // 1. Validar que exista
+  if (!number) {
     return res.status(400).json({
-      error: "Falta el parámetro 'arabic'."
+      error: "No se envió ningún valor.",
+      detalle: "Debe enviar un número arábigo en el parámetro '?number='."
     });
   }
 
-  // 2. Debe ser SOLO dígitos (sin letras, sin signos, sin espacios)
-  if (!/^\d+$/.test(raw)) {
+  // 2. Validar que contenga SOLO dígitos
+  if (!/^\d+$/.test(number)) {
     return res.status(400).json({
-      error: "Formato inválido. 'arabic' debe contener únicamente dígitos 0–9."
+      error: "Formato inválido.",
+      detalle: `El valor recibido "${number}" contiene caracteres no numéricos.`
     });
   }
 
-  // 3. Convertir a número seguro recién ahora
-  const arabic = Number(raw);
+  const num = parseInt(number, 10);
 
-  // 4. Validar rango
-  if (arabic < 1 || arabic > 3999) {
+  // 3. Rango permitido
+  if (num < 1 || num > 3999) {
     return res.status(400).json({
-      error: "Número fuera de rango. Solo se aceptan valores entre 1 y 3999."
+      error: "Número fuera de rango.",
+      detalle: "El número debe estar entre 1 y 3999."
     });
   }
 
-  const roman = arabicToRoman(arabic);
-  return res.status(200).json({ roman });
+  // 4. Convertir
+  const roman = arabicToRoman(num);
+
+  return res.json({
+    original: number,
+    convertido: roman
+  });
 });
+
 
 // HEALTHCHECK
 app.get("/health", (_, res) => {
