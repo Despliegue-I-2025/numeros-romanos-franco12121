@@ -159,24 +159,34 @@ app.get('/r2a', (req, res) => {
 app.get('/a2r', (req, res) => {
   const raw = req.query.arabic;
 
-  // Validación estricta del formato numérico
-  if (!raw || !/^[0-9]+$/.test(raw)) {
+  // 1. Debe existir
+  if (!raw) {
     return res.status(400).json({
-      error: "El parámetro 'arabic' debe contener solo dígitos."
+      error: "Falta el parámetro 'arabic'."
     });
   }
 
+  // 2. Debe ser SOLO dígitos (sin letras, sin signos, sin espacios)
+  if (!/^\d+$/.test(raw)) {
+    return res.status(400).json({
+      error: "Formato inválido. 'arabic' debe contener únicamente dígitos 0–9."
+    });
+  }
+
+  // 3. Convertir a número seguro recién ahora
   const arabic = Number(raw);
 
+  // 4. Validar rango
   if (arabic < 1 || arabic > 3999) {
     return res.status(400).json({
-      error: "Número fuera de rango (1 a 3999)."
+      error: "Número fuera de rango. Solo se aceptan valores entre 1 y 3999."
     });
   }
 
   const roman = arabicToRoman(arabic);
   return res.status(200).json({ roman });
 });
+
 
 
 // =====================================================
