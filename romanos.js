@@ -159,17 +159,18 @@ app.get('/r2a', (req, res) => {
 // RUTA: Árabe → Romano
 // ===============================
 app.get('/a2r', (req, res) => {
-  const number = req.query.number;
+  // Aceptar tanto ?number= como ?arabic=
+  const number = req.query.number || req.query.arabic;
 
   // 1. Validar que exista
   if (!number) {
     return res.status(400).json({
       error: "No se envió ningún valor.",
-      detalle: "Debe enviar un número arábigo en el parámetro '?number='."
+      detalle: "Debe enviar un número arábigo en '?number=' o '?arabic='."
     });
   }
 
-  // 2. Validar que contenga SOLO dígitos
+  // 2. Validar solo dígitos
   if (!/^\d+$/.test(number)) {
     return res.status(400).json({
       error: "Formato inválido.",
@@ -179,11 +180,11 @@ app.get('/a2r', (req, res) => {
 
   const num = parseInt(number, 10);
 
-  // 3. Rango permitido
+  // 3. Validar rango
   if (num < 1 || num > 3999) {
     return res.status(400).json({
       error: "Número fuera de rango.",
-      detalle: "El número debe estar entre 1 y 3999."
+      detalle: "Debe estar entre 1 y 3999."
     });
   }
 
