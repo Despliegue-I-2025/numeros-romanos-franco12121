@@ -125,9 +125,12 @@ function isValidRoman(roman) {
   return strictRomanRegex.test(roman);
 }
 
-// ==============================
-// R2A — Romano → Arábigo
-// ==============================
+
+// =====================================================
+// ENDPOINTS API (SOLO UNA VEZ)
+// =====================================================
+
+// ROMANO → ARÁBIGO
 app.get('/r2a', (req, res) => {
   const romanRaw = req.query.roman;
   if (!romanRaw) {
@@ -153,10 +156,8 @@ app.get('/r2a', (req, res) => {
   return res.status(200).json({ arabic });
 });
 
-// ==============================
-// A2R — Arábigo → Romano
-// ==============================
-app.get('/a2r', (req, res) => {
+//arabicos -romanos 
++app.get('/a2r', (req, res) => {
   const raw = req.query.arabic;
 
   // 1. Debe existir
@@ -185,37 +186,6 @@ app.get('/a2r', (req, res) => {
 
   const roman = arabicToRoman(arabic);
   return res.status(200).json({ roman });
-});
-
-
-
-// =====================================================
-// ENDPOINTS API (SOLO UNA VEZ)
-// =====================================================
-
-// ROMANO → ARÁBIGO
-app.get("/r2a", (req, res) => {
-    const roman = req.query.roman;
-    if (!roman) return res.status(400).json({ error: "Parametro roman requerido." });
-
-    const result = romanToArabic(roman);
-    if (result.error) return res.status(400).json({ error: result.error });
-
-    res.json({ arabic: result });
-});
-
-// ARÁBIGO → ROMANO
-app.get("/a2r", (req, res) => {
-    const raw = req.query.arabic;
-    if (!raw) return res.status(400).json({ error: "Parametro arabic requerido." });
-
-    const num = parseInt(raw);
-    if (isNaN(num)) return res.status(400).json({ error: "Debe ser numérico." });
-
-    const result = arabicToRoman(num);
-    if (result.error) return res.status(400).json({ error: result.error });
-
-    res.json({ roman: result });
 });
 
 // HEALTHCHECK
